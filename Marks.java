@@ -8,6 +8,7 @@
 */
 
 import java.io.BufferedReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -15,15 +16,33 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Random;
 
 /**
 * This is the marks program.
 */
 final class Marks {
+
+    /**
+     * Created constant.
+     */
+    static final String THIS_DIR = "./";
+    /**
+     * Created constant.
+     */
+    static final String FRONT_BRACE = "[";
+    /**
+     * Created constant.
+     */
+    static final String BACK_BRACE = "]";
+    /**
+     * Created constant.
+     */
+    static final String COMMAS = ", ";
+    /**
+     * Created constant.
+     */
+    static final String COMMA = ",";
 
     /**
     * Prevent instantiation
@@ -44,17 +63,16 @@ final class Marks {
     * @param arrayOfAssignments the collection of assignments
     * @return the generated marks
     */
-    public static String[][] generateMarks(final String[] arrayOfStudents, 
+    public static String[][] generateMarks(final String[] arrayOfStudents,
                                        final String[] arrayOfAssignments) {
-        // this is just a place holder!
-        String[][] placeholderArray = { { "", "Ass #1", "Ass #2" }, 
-                           { "Sue", "76%", "88%" },
-                           { "Bob", "46%", "81%" } };
+        final int seventyFive = 75;
+        final int ten = 10;
 
         final int stuNum = arrayOfStudents.length;
         final int assNum = arrayOfAssignments.length;
 
-        String[][] markArray = new String[stuNum + 1][assNum + 1];
+        final String[][] markArray = new String[stuNum + 1][assNum + 1];
+        markArray[0][0] = "-";
 
         int counter2 = 0;
         for (int counter1 = 1; counter1 < assNum; counter1++) {
@@ -70,11 +88,12 @@ final class Marks {
         }
         markArray[stuNum][0] = arrayOfStudents[counter2];
 
-        Random random = new Random();
+        final Random random = new Random();
 
         for (int counter = 1; counter <= stuNum; counter++) {
             for (int counter1 = 1; counter1 <= assNum; counter1++) {
-                int mark = (int)Math.floor(random.nextGaussian()*10+75);
+                final int mark = (int) Math.floor(
+                        random.nextGaussian() * ten + seventyFive);
                 markArray[counter][counter1] = String.valueOf(mark) + "%";
             }
         }
@@ -93,8 +112,8 @@ final class Marks {
     public static void main(final String[] args) {
         final ArrayList<String> listOfStudents = new ArrayList<String>();
         final ArrayList<String> listOfAssingments = new ArrayList<String>();
-        final Path studentFilePath = Paths.get("./", args[0]);
-        final Path assignmentFilePath = Paths.get("./", args[1]);
+        final Path studentFilePath = Paths.get(THIS_DIR, args[0]);
+        final Path assignmentFilePath = Paths.get(THIS_DIR, args[1]);
         final Charset charset = Charset.forName("UTF-8");
 
         try (BufferedReader readerStudent = Files.newBufferedReader(
@@ -119,20 +138,40 @@ final class Marks {
             System.err.println(errorCode);
         }
 
-        String[] studentArray = listOfStudents.toArray(new String[0]);
-        String[] assignmentArray = listOfAssingments.toArray(new String[0]);
+        final String[] studentArray = listOfStudents.toArray(new String[0]);
+        final String[] assignmentArray = listOfAssingments.toArray(
+                new String[0]);
 
-        String[][] temp = generateMarks(studentArray, assignmentArray);
+        final String[][] marksArray = generateMarks(studentArray,
+                                                    assignmentArray);
 
-        // Normal Distribution numbers
-        Random random = new Random();
+        try {
+            System.out.println("File created: marks.csv");
 
-        for (int loopCounter = 0; loopCounter < 5; loopCounter++) {
-            int mark = (int)Math.floor(random.nextGaussian()*10+75);
-            System.out.println(mark);
+            String firstLine = Arrays.toString(marksArray[0]);
+            firstLine = firstLine.replace(COMMAS, COMMA);
+            firstLine = firstLine.replace(FRONT_BRACE, "");
+            firstLine = firstLine.replace(BACK_BRACE, "");
+
+            final FileWriter myFile = new FileWriter("marks.csv");
+
+            myFile.write(firstLine);
+
+            for (int counter = 1; counter < marksArray.length; counter++) {
+                String line = Arrays.toString(marksArray[counter]);
+                line = line.replace(COMMAS, COMMA);
+                line = line.replace(FRONT_BRACE, "");
+                line = line.replace(BACK_BRACE, "");
+                myFile.write(System.lineSeparator());
+                myFile.write(line);
+            }
+
+            myFile.close();
+
+        } catch (IOException error) {
+            System.out.println("An error occurred.");
+            error.printStackTrace();
         }
-
-        // 
 
         System.out.println("\nDone.");
     }
